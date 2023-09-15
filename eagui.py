@@ -226,12 +226,14 @@ class psuData:
         self.labelStatus.configure(text="Running")
         while self.status:
 
+
             time.sleep(0.2)
             try:
                 self.volt = round(psu.get_voltage(), 3)
                 self.voltValue.set(self.volt)
             except:
                 print("Could not read psu values")
+
 
             time.sleep(0.1)
             try:
