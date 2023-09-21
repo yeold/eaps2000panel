@@ -100,6 +100,10 @@ class psuData:
     volt = 0.0
     current = 0.0
     watt = 0.0
+    defaultSetVolt = 0.0
+    defaultSetCurrent = 0.0
+    defaultOvp = 0.0
+    defaultOcp = 0.0
     status = True
     connectionStatus = False
     tsk = []
@@ -215,13 +219,13 @@ class psuData:
         self.setOcp.configure(wrap="word")
 
         self.setVoltage.delete("1.0", END)
-        self.setVoltage.insert("1.0", str(round(psu.get_nominal_voltage(), 3)))
+        self.setVoltage.insert("1.0", str(round(self.defaultSetVolt, 3)))
         self.setCurrent.delete("1.0", END)
-        self.setCurrent.insert("1.0", str(round(psu.get_nominal_current(), 3)))
+        self.setCurrent.insert("1.0", str(round(self.defaultSetCurrent, 3)))
         self.setOvp.delete("1.0", END)
-        self.setOvp.insert("1.0", str(round(psu.get_nominal_voltage(), 3)))
+        self.setOvp.insert("1.0", str(round(self.defaultOvp, 3)))
         self.setOcp.delete("1.0", END)
-        self.setOcp.insert("1.0", str(round(psu.get_nominal_current(), 3)))
+        self.setOcp.insert("1.0", str(round(self.defaultOcp, 3)))
 
         self.labelWatt = tk.Label(top)
         self.labelWatt.place(relx=LABEL_WATT_X, rely=LABEL_WATT_Y, height=33, width=37)
@@ -233,6 +237,8 @@ class psuData:
         self.wattValue.set(str(self.watt))
         self.labelWattVal.configure(font=("Arial", 14))
         self.labelWattVal.configure(textvariable=self.wattValue)
+
+        self.labelConnectionStatus.configure(text="Connected")
 
     def destroy_all(self):
         self.status = False
@@ -303,5 +309,10 @@ if __name__ == '__main__':
     config.read("config.ini")
 
     psu = PsuEA(comport=str(config.get("DEVICE", "port")))
+
+    psuData.defaultSetVolt = float(config.get("PSU_PARAMS", "set_volt"))
+    psuData.defaultSetCurrent = float(config.get("PSU_PARAMS", "set_current"))
+    psuData.defaultOvp = float(config.get("PSU_PARAMS", "set_ovp"))
+    psuData.defaultOcp = float(config.get("PSU_PARAMS", "set_ocp"))
 
     vp_start_gui()
