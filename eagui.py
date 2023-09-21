@@ -60,6 +60,10 @@ SET_OVP_BUTTON_X =     0.5889
 SET_OVP_BUTTON_Y =     0.4
 SET_OCP_BUTTON_X =     0.5889
 SET_OCP_BUTTON_Y =     0.5
+WATT_VAL_X =           0.11
+WATT_VAL_Y =           0.81
+LABEL_WATT_X =         0.7
+LABEL_WATT_Y =         0.81
 
 def vp_start_gui():
     '''Starting point when module is the main routine.'''
@@ -88,12 +92,14 @@ def destroy_psuData():
     w = None
 
 def on_exit():
+    psu.remote_off()
     psuData.destroy_all(psuData)
     root.destroy()
 
 class psuData:
     volt = 0.0
     current = 0.0
+    watt = 0.0
     status = True
     connectionStatus = False
     tsk = []
@@ -103,6 +109,7 @@ class psuData:
            top is the toplevel containing window.'''
         self.currValue = StringVar()
         self.voltValue = StringVar()
+        self.wattValue = StringVar()
 
         top.minsize(250, 350)
         top.maxsize(250, 350)
@@ -216,6 +223,17 @@ class psuData:
         self.setOcp.delete("1.0", END)
         self.setOcp.insert("1.0", str(round(psu.get_nominal_current(), 3)))
 
+        self.labelWatt = tk.Label(top)
+        self.labelWatt.place(relx=LABEL_WATT_X, rely=LABEL_WATT_Y, height=33, width=37)
+        self.labelWatt.configure(font=("Arial", 14))
+        self.labelWatt.configure(text='''W''')
+
+        self.labelWattVal = tk.Label(top)
+        self.labelWattVal.place(relx=WATT_VAL_X, rely=WATT_VAL_Y, height=30, width=100)
+        self.wattValue.set(str(self.watt))
+        self.labelWattVal.configure(font=("Arial", 14))
+        self.labelWattVal.configure(textvariable=self.wattValue)
+
     def destroy_all(self):
         self.status = False
         psu.close(True, True)
@@ -223,9 +241,7 @@ class psuData:
             tt.join()
 
     def update_value(self):
-        self.labelStatus.configure(text="Running")
         while self.status:
-
 
             time.sleep(0.2)
             try:
@@ -234,13 +250,16 @@ class psuData:
             except:
                 print("Could not read psu values")
 
-
             time.sleep(0.1)
             try:
                 self.current = round(psu.get_current(), 3)
                 self.currValue.set(self.current)
+                
             except:
                 print("Could not read psu values")
+
+            self.watt = round((self.volt * self.current), 3)
+            self.wattValue.set(self.watt)
 
     def power_on(self):
         psu.output_on()
@@ -284,6 +303,5 @@ if __name__ == '__main__':
     config.read("config.ini")
 
     psu = PsuEA(comport=str(config.get("DEVICE", "port")))
-    psu.remote_off()
 
     vp_start_gui()
