@@ -92,6 +92,8 @@ def destroy_psuData():
     w = None
 
 def on_exit():
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
     psu.remote_off()
     psuData.destroy_all(psuData)
     root.destroy()
@@ -289,18 +291,22 @@ class psuData:
     def psu_setVolt(self):
         setVolt = float(self.setVoltage.get("1.0", END))
         psu.set_voltage(setVolt)
+        config.set("PSU_PARAMS", "set_volt", str(setVolt))
 
     def psu_setCurrent(self):
         setCurrent = float(self.setCurrent.get("1.0", END))
         psu.set_current(setCurrent)
+        config.set("PSU_PARAMS", "set_current", str(setCurrent))
 
     def psu_setOvp(self):
         setOvp = float(self.setOvp.get("1.0", END))
         psu.set_ovp(setOvp)
+        config.set("PSU_PARAMS", "set_ovp", str(setOvp))
 
     def psu_setOcp(self):
         setOcp = float(self.setOcp.get("1.0", END))
         psu.set_ocp(setOcp)
+        config.set("PSU_PARAMS", "set_ocp", str(setOcp))
 
 if __name__ == '__main__':
     path = os.path.abspath(__file__)
