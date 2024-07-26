@@ -77,6 +77,8 @@ WATT_VAL_Y =           0.81
 LABEL_WATT_X =         0.7
 LABEL_WATT_Y =         0.81
 
+psu_available = False
+
 def vp_start_gui():
     '''Starting point when module is the main routine.'''
     global val, w, root
@@ -106,7 +108,10 @@ def destroy_psuData():
 def on_exit():
     with open('config.ini', 'w') as configfile:
         config.write(configfile)
-    psu.remote_off()
+    
+    if psu_available:
+        psu.remote_off()
+    
     psuData.destroy_all(psuData)
     root.destroy()
 
@@ -234,7 +239,8 @@ class psuData:
 
     def destroy_all(self):
         self.status = False
-        psu.close(True, True)
+        if psu_available:
+            psu.close(True, True)
         for tt in self.tsk:
             tt.join()
 
@@ -242,22 +248,23 @@ class psuData:
         while self.status:
 
             time.sleep(0.2)
-            try:
-                self.volt = round(psu.get_voltage(), 3)
-                self.voltValue.set(self.volt)
-            except:
-                print("Could not read psu values")
+            if psu_available:
+                try:
+                    self.volt = round(psu.get_voltage(), 3)
+                    self.voltValue.set(self.volt)
+                except:
+                    print("Could not read psu values")
 
-            time.sleep(0.1)
-            try:
-                self.current = round(psu.get_current(), 3)
-                self.currValue.set(self.current)
-                
-            except:
-                print("Could not read psu values")
+                time.sleep(0.1)
+                try:
+                    self.current = round(psu.get_current(), 3)
+                    self.currValue.set(self.current)
+                    
+                except:
+                    print("Could not read psu values")
 
-            self.watt = round((self.volt * self.current), 3)
-            self.wattValue.set(self.watt)
+                self.watt = round((self.volt * self.current), 3)
+                self.wattValue.set(self.watt)
 
     def power_on(self):
         psu.output_on()
@@ -268,8 +275,11 @@ class psuData:
         self.labelStatus.configure(text="Power off")
 
     def psu_connect(self):
-        psu.remote_on()
-        self.labelConnectionStatus.configure(text="Connected")
+        if psu_available:
+            psu.remote_on()
+            self.labelConnectionStatus.configure(text="Connected")
+        else:
+            self.labelConnectionStatus.configure(text="No PSU available")
         T = threading.Thread(target=self.update_value)
         T.start()
         self.tsk.append(T)
@@ -311,7 +321,11 @@ if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read("config.ini")
 
-    psu = PsuEA(comport=str(config.get("DEVICE", "port")))
+    try:
+        psu = PsuEA(comport=str(config.get("DEVICE", "port")))
+        psu_available = True
+    except:
+        psu_available = False
 
     psuData.defaultSetVolt = float(config.get("PSU_PARAMS", "set_volt"))
     psuData.defaultSetCurrent = float(config.get("PSU_PARAMS", "set_current"))
