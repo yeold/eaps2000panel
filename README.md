@@ -12,6 +12,5 @@ And then just run `python3 eagui.py`
 
 ## TODO
 
-- Fix unstable shutdown procedure-
 - Power tracking
 - Nicer GUI
